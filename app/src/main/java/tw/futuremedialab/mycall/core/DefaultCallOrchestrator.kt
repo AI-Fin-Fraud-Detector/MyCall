@@ -50,6 +50,10 @@ class DefaultCallOrchestrator @Inject constructor(
     private var autoAnswerJob: Job? = null
     private var callServiceAudioDelegate: CallServiceAudioDelegate? = null
 
+    // App-lifetime scope for fire-and-forget reports that must outlive the call session
+    // (the call-end report fires exactly as the session is being torn down).
+    private val reporterScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     private var currentCallInitialState: Int? = null
     private var micMuted: Boolean = false
     private var speakerOn: Boolean = false
@@ -252,6 +256,12 @@ class DefaultCallOrchestrator @Inject constructor(
                 resetSessionState()
             }
         } else {
+            // An answered incoming call that has now ended (e.g. the caller hung up):
+            // tell the backend so edge/kebbi tear down the screening / WebRTC session.
+            // Harmless if the backend initiated the hangup (on_call_end is re-entrant).
+            if (wasIncomingRingingAtStart && !wasNeverConnected) {
+                reporterScope.launch { fraudReporter.reportCallEnded() }
+            }
             cancelSessionScope()
             resetSessionState()
         }

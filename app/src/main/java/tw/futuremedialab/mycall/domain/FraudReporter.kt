@@ -26,4 +26,13 @@ class FraudReporter @Inject constructor(
         authRepository.reportIncomingCall(token, phoneNumber, callerName)
             .onFailure { LoggingUtil.w(TAG, "Failed to report incoming call: ${it.message}") }
     }
+
+    suspend fun reportCallEnded() {
+        val token = userPreferences.getAccessToken() ?: run {
+            LoggingUtil.d(TAG, "No token — skipping call-end report")
+            return
+        }
+        authRepository.reportCallEnded(token)
+            .onFailure { LoggingUtil.w(TAG, "Failed to report call end: ${it.message}") }
+    }
 }

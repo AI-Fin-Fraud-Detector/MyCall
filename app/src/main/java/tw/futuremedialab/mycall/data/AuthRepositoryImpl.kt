@@ -74,6 +74,11 @@ class AuthRepositoryImpl @Inject constructor(
         if (!response.isSuccessful) error("Call report failed (${response.code()})")
     }
 
+    override suspend fun reportCallEnded(token: String): Result<Unit> = runCatching {
+        val response = fraudApiService.callEnd("Bearer $token")
+        if (!response.isSuccessful) error("Call end report failed (${response.code()})")
+    }
+
     override suspend fun approveDevicePairing(token: String, pairingCode: String): Result<Unit> = runCatching {
         val response = authApiService.approveDevice(
             "Bearer $token",

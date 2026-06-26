@@ -13,4 +13,9 @@ interface FraudApiService {
         @Header("Authorization") authorization: String,
         @Body request: FraudReportRequestDto
     ): Response<Unit>
+
+    @POST("api/fraud/call-end")
+    suspend fun callEnd(
+        @Header("Authorization") authorization: String
+    ): Response<Unit>
 }
